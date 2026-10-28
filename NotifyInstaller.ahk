@@ -121,7 +121,7 @@ PollNotificationManager() {
         message := IniRead(job.file, 'Result', 'Message', '')
         switch state {
             case 'Installed': text := '已安装通知模块，DLL 指纹已匹配' (backup != '' ? '；恢复备份可用。' : '；缺少可用恢复备份。')
-            case 'UpdateAvailable': text := '检测到旧试验通知模块，可点击“安装通知模块”更新；原备份保留。'
+            case 'UpdateAvailable': text := '检测到旧版通知模块，可点击“安装通知模块”更新；原备份保留。'
             case 'NotInstalled': text := 'DLL 指纹匹配：可安装 / 已恢复安装前版本。'
             case 'Unsupported': text := '此 DLL 不在已验证的支持范围内，未修改文件。'
             case 'Compatible': text := '检测通过：代码结构及补丁结果均匹配已验证版本，可以安装。'

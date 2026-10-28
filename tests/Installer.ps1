@@ -19,8 +19,8 @@ function AssertHash($expected) {
 }
 $official = '89FC940377A779BABBD64C9CD4ABE6256663681D92F12802AA2DF97A8DB18494'
 $anti = '2ABDBCD647AAC934662022885C397A7F1C48D9B3D80F0DB3C2370E0EE74E2EE0'
-$newOfficial = 'DB83B719C0A6691528AD3A69E6C0ED00EA035ACAD5FC8FBB31F5A53FBE6CB441'
-$newAnti = '4145C6F802DFB44ECE447A173C51424DCBD09C67AABFF6D996CB394ABCDCBE70'
+$newOfficial = 'AD2054E97C4D1E3562800B36B7A161D7912DD2A5D75B0A3846CCAC4071BD6138'
+$newAnti = '8B5D66505B77CC660437E9ED2EA7A60F49825EFC02557888077CE8CDD707D9DC'
 $script:target = Join-Path $testRoot 'Weixin.dll'
 Copy-Item -LiteralPath (Join-Path $FixtureRoot 'Official.dll') -Destination $target
 Check Status NotInstalled
@@ -50,6 +50,15 @@ Check Install Installed
 AssertHash $newAnti
 Check Restore NotInstalled
 AssertHash $anti
+# Also upgrade the public v0.1.0 notification bridge when supplied locally.
+if (Test-Path -LiteralPath (Join-Path $FixtureRoot 'PreviousNotify.dll')) {
+    Copy-Item -LiteralPath (Join-Path $FixtureRoot 'PreviousNotify.dll') -Destination $target -Force
+    Check Status UpdateAvailable
+    Check Install Installed
+    AssertHash $newAnti
+    Check Restore NotInstalled
+    AssertHash $anti
+}
 # A damaged backup must block restore and leave the installed DLL intact.
 Check Install Installed
 $backup = $target + '.before-notify.bak'

@@ -1495,10 +1495,18 @@ fn show(image: &Image<'_>, function: &Range<u64>, native: &Native, _crop: i32) -
     code.xorps(xmm0, xmm0)?;
     code.movups(ptr(rsp + 0x40), xmm0)?;
     code.movups(ptr(rsp + 0x50), xmm0)?;
+    code.movups(ptr(rsp + 0xa0), xmm0)?;
+    code.movups(ptr(rsp + 0xb0), xmm0)?;
     code.mov(qword_ptr(rsp + 0x98), 0)?;
     code.mov(rcx, rsi)?;
     code.lea(rdx, ptr(rsp + 0x40))?;
     code.call(native.summary)?;
+    // ContactService returns an ordinary UTF-8 std::string. Its first parameter
+    // is unused in the verified 4.1.9.30 wrapper; RDX is output, R8 username.
+    code.xor(ecx, ecx)?;
+    code.lea(rdx, ptr(rsp + 0xa0))?;
+    code.mov(r8, qword_ptr(rsp + 0x78))?;
+    code.call(native.avatar)?;
     let user32 = constants.push(wide("user32.dll"));
     let panel_title = constants.push(wide("微信窗口收纳 · WinAutoHide 分支"));
     code.lea(rcx, relative(user32))?;
@@ -1521,10 +1529,13 @@ fn show(image: &Image<'_>, function: &Range<u64>, native: &Native, _crop: i32) -
     code.movups(ptr(r14), xmm0)?;
     code.call(relative(native.import("GetCurrentProcessId")?))?;
     code.mov(dword_ptr(r14 + 12), eax)?;
-    code.lea(rdi, ptr(r14 + 16))?;
-    for (kind, header, maximum) in [(0, 0, 512), (1, 4, 1024), (2, 8, 4096)] {
+    code.mov(dword_ptr(r14 + 16), 0)?;
+    code.lea(rdi, ptr(r14 + 20))?;
+    for (kind, header, maximum) in [(0, 0, 512), (1, 4, 1024), (2, 8, 4096), (3, 16, 2048)] {
         if kind == 2 {
             code.lea(rax, ptr(rsp + 0x40))?;
+        } else if kind == 3 {
+            code.lea(rax, ptr(rsp + 0xa0))?;
         } else {
             code.mov(rax, qword_ptr(rsp + 0x78))?;
             if kind == 1 { code.add(rax, native.title as i32)?; }
@@ -1533,13 +1544,27 @@ fn show(image: &Image<'_>, function: &Range<u64>, native: &Native, _crop: i32) -
         code.mov(edx, maximum)?;
         code.cmp(rcx, rdx)?;
         code.cmova(rcx, rdx)?;
-        code.mov(dword_ptr(r14 + header), ecx)?;
         code.mov(rsi, rax)?;
         code.cmp(qword_ptr(rax + 24), 16)?;
         code.cmovae(rsi, qword_ptr(rax))?;
+        // Never cut a UTF-8 sequence at a field cap (including emoji).
+        let mut trim = code.create_label();
+        let mut aligned = code.create_label();
+        code.set_label(&mut trim)?;
+        code.test(rcx, rcx)?;
+        code.jz(aligned)?;
+        code.mov(al, byte_ptr(rsi + rcx))?;
+        code.cmp(al, 0x80)?;
+        code.jb(aligned)?;
+        code.cmp(al, 0xc0)?;
+        code.jae(aligned)?;
+        code.dec(rcx)?;
+        code.jmp(trim)?;
+        code.set_label(&mut aligned)?;
+        code.mov(dword_ptr(r14 + header), ecx)?;
         code.rep().movsb()?;
     }
-    code.mov(qword_ptr(rsp + 0x60), 0x574E4331)?;
+    code.mov(qword_ptr(rsp + 0x60), 0x574E4332)?;
     code.mov(rax, rdi)?;
     code.sub(rax, r14)?;
     code.mov(dword_ptr(rsp + 0x68), eax)?;
@@ -1561,6 +1586,8 @@ fn show(image: &Image<'_>, function: &Range<u64>, native: &Native, _crop: i32) -
     native.probe_event(&mut code, 8)?;
     code.set_label(&mut cleanup)?;
     code.lea(rcx, ptr(rsp + 0x40))?;
+    code.call(native.destroy_string)?;
+    code.lea(rcx, ptr(rsp + 0xa0))?;
     code.call(native.destroy_string)?;
     code.mov(rcx, qword_ptr(rsp + 0x98))?;
     code.test(rcx, rcx)?;

@@ -7,13 +7,16 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $original = '89FC940377A779BABBD64C9CD4ABE6256663681D92F12802AA2DF97A8DB18494'
 $antiRevoke = '2ABDBCD647AAC934662022885C397A7F1C48D9B3D80F0DB3C2370E0EE74E2EE0'
-$patchedOriginal = 'DB83B719C0A6691528AD3A69E6C0ED00EA035ACAD5FC8FBB31F5A53FBE6CB441'
-$patchedAntiRevoke = '4145C6F802DFB44ECE447A173C51424DCBD09C67AABFF6D996CB394ABCDCBE70'
+$patchedOriginal = 'AD2054E97C4D1E3562800B36B7A161D7912DD2A5D75B0A3846CCAC4071BD6138'
+$patchedAntiRevoke = '8B5D66505B77CC660437E9ED2EA7A60F49825EFC02557888077CE8CDD707D9DC'
+$previousOriginal = 'DB83B719C0A6691528AD3A69E6C0ED00EA035ACAD5FC8FBB31F5A53FBE6CB441'
+$previousAntiRevoke = '4145C6F802DFB44ECE447A173C51424DCBD09C67AABFF6D996CB394ABCDCBE70'
 $legacyOriginal = '199091D2AB8F082D71DF1374FB1389878BF25A2DAAA6290ECFE7E91D86C0A204'
 $legacyAntiRevoke = '18F4AF9488095B989F91E0D569D390AFE4EE1CADB632DEBA11A03CBC63F1F556'
-$toolExpectedHash = 'FAE73E2E535CDD0F95462C422D4618BE5634FA14A3CDFA18695E1747D51EBF5F'
+$toolExpectedHash = 'E8C1CD4E39C0E169C32C5B5B30102990DB97350C83692E602A4EB2C110162B9C'
 $baseHashes = @($original, $antiRevoke)
-$installedHashes = @($patchedOriginal, $patchedAntiRevoke, $legacyOriginal, $legacyAntiRevoke)
+$upgradeHashes = @($legacyOriginal, $legacyAntiRevoke, $previousOriginal, $previousAntiRevoke)
+$installedHashes = @($patchedOriginal, $patchedAntiRevoke) + $upgradeHashes
 $result = @{ State='Error'; Message='Operation failed'; Hash=''; Backup=''; Version='' }
 $stagingFile = $null
 $swapBackup = $null
@@ -69,7 +72,7 @@ try {
         if ($Action -ne 'Status') { throw $result.Message }
     } elseif ($Action -in @('Status','Verify')) {
         $result.State = if ($currentHash -in $installedHashes) { 'Installed' } else { 'NotInstalled' }
-        if ($currentHash -in @($legacyOriginal, $legacyAntiRevoke)) { $result.State = 'UpdateAvailable' }
+        if ($currentHash -in $upgradeHashes) { $result.State = 'UpdateAvailable' }
         $result.Message = 'Status checked.'
     } else {
         if (Get-Process Weixin,WeChat -ErrorAction SilentlyContinue) {
@@ -88,8 +91,8 @@ try {
             if ($Action -eq 'Install') {
                 $baseSource = $TargetFile
                 $baselineHash = $currentHash
-                if ($currentHash -in @($legacyOriginal, $legacyAntiRevoke)) {
-                    $requiredHash = if ($currentHash -eq $legacyAntiRevoke) { $antiRevoke } else { $original }
+                if ($currentHash -in $upgradeHashes) {
+                    $requiredHash = if ($currentHash -in @($legacyAntiRevoke, $previousAntiRevoke)) { $antiRevoke } else { $original }
                     if (!$backup -or (Hash $backup) -ne $requiredHash) { throw 'A verified original backup is required to upgrade the legacy module.' }
                     $baseSource = $backup
                     $baselineHash = $requiredHash
@@ -115,7 +118,7 @@ try {
                 if (!$backup) { throw 'A verified original backup is missing. Restore was refused.' }
                 $expectedHash = Hash $backup
                 # The two installed variants must restore their own original, never drop anti-revoke.
-                $requiredHash = if ($currentHash -in @($patchedAntiRevoke, $legacyAntiRevoke)) { $antiRevoke } else { $original }
+                $requiredHash = if ($currentHash -in @($patchedAntiRevoke, $legacyAntiRevoke, $previousAntiRevoke)) { $antiRevoke } else { $original }
                 if ($expectedHash -ne $requiredHash) { throw 'Backup does not match this installed notification variant.' }
                 Copy-Item -LiteralPath $backup -Destination $stagingFile
             }

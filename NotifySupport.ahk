@@ -1,32 +1,40 @@
 #Include vendor\Toastify\lib\Toastify.ahk
+#Include EmojiText.ahk
+#Include AvatarSupport.ahk
 
 ; Card gesture state: 0, or the card currently pressed.
 NotifyGesture := 0
 ; Tests inject {x, y, down} here instead of moving the real cursor.
 NotifyTestPointer := 0
 
-ParseNotificationPacket(address, size) {
-    if !address || size < 16 || size > 8192
+ParseNotificationPacket(address, size, version := 1) {
+    header := version = 2 ? 20 : 16
+    if !address || size < header || size > 8192
         throw Error('通知数据长度不符。')
     keyLength := NumGet(address, 0, 'uint')
     titleLength := NumGet(address, 4, 'uint')
     bodyLength := NumGet(address, 8, 'uint')
+    avatarLength := version = 2 ? NumGet(address, 16, 'uint') : 0
     if keyLength > 512 || titleLength > 1024 || bodyLength > 4096
-        || 16 + keyLength + titleLength + bodyLength != size
+        || avatarLength > 2048 || header + keyLength + titleLength + bodyLength + avatarLength != size
         throw Error('通知字段长度不符。')
-    return {pid: NumGet(address, 12, 'uint'),
-        key: StrGet(address + 16, keyLength, 'UTF-8'),
-        title: StrGet(address + 16 + keyLength, titleLength, 'UTF-8'),
-        body: StrGet(address + 16 + keyLength + titleLength, bodyLength, 'UTF-8')}
+    return {pid: NumGet(address, 12, 'uint'), version: version,
+        key: StrGet(address + header, keyLength, 'UTF-8'),
+        title: StrGet(address + header + keyLength, titleLength, 'UTF-8'),
+        body: StrGet(address + header + keyLength + titleLength, bodyLength, 'UTF-8'),
+        avatar: avatarLength ? StrGet(address + header + keyLength + titleLength + bodyLength, avatarLength, 'UTF-8') : ''}
 }
 
 ReceiveNativeNotification(wParam, lParam, *) {
     try {
-        if !lParam || NumGet(lParam, 0, 'uptr') != 0x574E4331
+        if !lParam
+            return 0
+        magic := NumGet(lParam, 0, 'uptr')
+        if magic != 0x574E4331 && magic != 0x574E4332
             return 0
         size := NumGet(lParam, A_PtrSize, 'uint')
         address := NumGet(lParam, 2 * A_PtrSize, 'ptr')
-        packet := ParseNotificationPacket(address, size)
+        packet := ParseNotificationPacket(address, size, magic = 0x574E4332 ? 2 : 1)
         name := StrLower(ProcessGetName(packet.pid))
         if name != 'weixin.exe' && name != 'wechat.exe'
             return 0
@@ -58,10 +66,11 @@ InitDockNotifications() {
     Toastify.hoverPauseEnabled := true
     Toastify.maxToasts := 3
     Toast.progressGracePeriod := 0
+    Toast.textRenderer := NotifyDrawEmojiText
     Toastify.SetConfig({width: 360, minHeight: 64, paddingX: 18, paddingY: 14,
         fontName: 'Microsoft YaHei UI', fontSizeTitle: 15, fontSizeBody: 14,
         fontWeightTitle: 'Bold', fontWeightBody: 'Normal', textHint: 5,
-        borderRadius: 6, borderWidth: 0, progressHeight: 2,
+        borderRadius: 6, borderWidth: 0, progressHeight: 2, iconSize: 42,
         animDuration: 240, animStyle: 'slide', animEntrance: 'left', animEasing: 'easeOutCubic',
         repoDuration: 200, repoEasing: 'easeOutCubic'})
     ; The library opens on WM_LBUTTONDOWN; replace it with press/release so a
@@ -78,17 +87,21 @@ ShowDockNotification(packet) {
         InitDockNotifications()
         title := packet.title != '' ? packet.title : '微信新消息'
         body := StrReplace(StrReplace(packet.body, '`r`n', ' '), '`n', ' ')
-        if StrLen(body) > 60
-            body := SubStr(body, 1, 60) '…'
-        Toastify.Show(title, body, [], {position: 'quarter-left', animEntrance: 'left',
+        body := NotifyTextPrefix(body, 60)
+        avatar := packet.HasProp('avatar') ? packet.avatar : ''
+        avatarSlot := (packet.HasProp('version') && packet.version = 2) || NotifyAvatarUrlAllowed(avatar)
+        card := Toastify.Show(title, body, [], {position: 'quarter-left', animEntrance: 'left',
             animStyle: 'slide', duration: 5000, showClose: false, showProgress: true,
             tag: 'wechat:' packet.key, onClick: OpenFromNotification,
-            marginX: 16, marginY: 16, spacing: 10})
+            marginX: 16, marginY: 16, spacing: 10, icon: avatarSlot ? 'avatar' : ''})
+        if IsObject(card) && avatar != ''
+            NotifyLoadAvatar(card, avatar)
         ; Real pointer polling: WM_MOUSELEAVE on layered windows is unreliable
         ; and the library's own fallback sleeps while every card is paused.
         SetTimer(NotifyHoverTick, 40)
         FileAppend(FormatTime(, 'yyyy-MM-dd HH:mm:ss') ' native_pid=' packet.pid ' displayed`n',
             A_ScriptDir '\data\notification.log', 'UTF-8')
+        return card
     } catch as e {
         PauseOnError(e)
     }
@@ -239,6 +252,11 @@ NotifyFinishGesture(released, lParam := 0) {
 }
 
 TestDockNotification(*) {
-    ShowDockNotification({pid: 0, key: 'local-test', title: '微信通知测试',
-        body: '悬停暂停，移开继续；按住向左滑动收起，单击展开微信。'})
+    card := ShowDockNotification({pid: 0, key: 'local-test', title: '微信通知测试',
+        body: '你好 😀 ❤️ 👍🏽，悬停暂停；左滑收起，单击展开微信。'})
+    if IsObject(card) {
+        card.icon := 'avatar'
+        card.Invalidate()
+        card.SetAvatar(NotifyDemoAvatar())
+    }
 }

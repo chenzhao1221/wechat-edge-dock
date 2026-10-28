@@ -1,4 +1,7 @@
 class Toast {
+    ; Local optional title/body renderer; returns false for the original path.
+    static textRenderer := 0
+    _avatarBitmap := 0
     title := ""
     body := ""
     actions := []
@@ -788,7 +791,6 @@ class Toast {
             layout := this.__computeBodyLayout(d)
             textBlockH := (layout.bodyY + Max(20 * d, layout.availableHeight)) - this.paddingY
             iconY := this.paddingY + Max(0, Floor((textBlockH - iconSize) / 2))
-            this.DrawIcon(iconX, iconY, iconSize, this.icon, pal)
             textStartX := iconX + iconSize + 12 * d
         }
         font := this.fontName
@@ -810,6 +812,9 @@ class Toast {
         ; ALWAYS blit the text bitmap (preserves text between frames).
         if (this._textBitmap)
             Gdip_DrawImage(this.GCache, this._textBitmap, 0, 0, this.width, this.height, 0, 0, this.width, this.height)
+        ; Local: opaque ClearType backdrop must not cover the avatar/icon.
+        if (this.icon != "" && this.icon != "none")
+            this.DrawIcon(iconX, iconY, iconSize, this.icon, pal)
         if (pal.HasOwnProp("rule") && pal.rule) {
             ; Local: solid leading-edge rule, clipped to the card shape.
             ruleBrush := Gdip_BrushCreateSolid(pal.rule)
@@ -1013,14 +1018,17 @@ class Toast {
             titleText := this.__fitText(this._GText, this.title, titleWidth
                 , Max(this.fontSizeTitle * 1.5, this._titleH), this.fontSizeTitle, this.fontWeightTitle)
             titleOpts := "x" textStartX " y" this.paddingY " w" titleWidth " c" Format("{:x}", pal.fg) " r" this.textHint " s" this.fontSizeTitle " " this.fontWeightTitle
-            Gdip_TextToGraphics(this._GText, titleText, titleOpts, font, this.width, this.height)
+            richOpts := titleOpts " h" Max(this.fontSizeTitle * 1.5, this._titleH)
+            if !IsObject(Toast.textRenderer) || !Toast.textRenderer.Call(this._GText, this.title, richOpts, font, this.width, this.height)
+                Gdip_TextToGraphics(this._GText, titleText, titleOpts, font, this.width, this.height)
         }
         if (this.body != "") {
             layout := this.__computeBodyLayout(d)
             bodyHeight := Max(20 * d, layout.availableHeight)
             bodyText := this.__fitText(this._GText, this.body, titleWidth, bodyHeight, this.fontSizeBody, this.fontWeightBody)
             bodyOpts := "x" textStartX " y" Round(layout.bodyY) " w" titleWidth " h" bodyHeight " c" Format("{:x}", bodyFg) " r" this.textHint " s" this.fontSizeBody " " this.fontWeightBody
-            Gdip_TextToGraphics(this._GText, bodyText, bodyOpts, font, this.width, this.height)
+            if !IsObject(Toast.textRenderer) || !Toast.textRenderer.Call(this._GText, this.body, bodyOpts, font, this.width, this.height)
+                Gdip_TextToGraphics(this._GText, bodyText, bodyOpts, font, this.width, this.height)
         }
 
         this._buttonClickRegions := []
@@ -1210,6 +1218,25 @@ class Toast {
     }
 
     DrawIcon(x, y, size, iconType, pal) {
+        if iconType = 'avatar' {
+            path := Gdip_CreatePath()
+            Gdip_AddPathRoundedRect(path, x, y, size, size, 6 * this.dpiFactor)
+            Gdip_SetClipPath(this.GCache, path, 0)
+            if this._avatarBitmap {
+                w := Gdip_GetImageWidth(this._avatarBitmap), h := Gdip_GetImageHeight(this._avatarBitmap)
+                side := Min(w, h)
+                Gdip_DrawImage(this.GCache, this._avatarBitmap, x, y, size, size, (w-side)/2, (h-side)/2, side, side)
+            } else {
+                bg := Gdip_BrushCreateSolid(0xFFF0F2F1), fg := Gdip_BrushCreateSolid(0xFFB4BDB8)
+                Gdip_FillRectangle(this.GCache, bg, x, y, size, size)
+                Gdip_FillEllipse(this.GCache, fg, x + size * 0.34, y + size * 0.19, size * 0.32, size * 0.32)
+                Gdip_FillEllipse(this.GCache, fg, x + size * 0.16, y + size * 0.57, size * 0.68, size * 0.57)
+                Gdip_DeleteBrush(bg), Gdip_DeleteBrush(fg)
+            }
+            Gdip_ResetClip(this.GCache)
+            Gdip_DeletePath(path)
+            return
+        }
         ; Dot radius scales with DPI (was hardcoded 2px → thin at 200%)
         dot := Max(3 * this.dpiFactor, size * 0.125)
         switch iconType {
@@ -1981,7 +2008,29 @@ Tick() {
         this._lastRenderX := -999999
         this._lastRenderY := -999999
     }
+    SetAvatar(path) {
+        bitmap := Gdip_CreateBitmapFromFile(path)
+        if !bitmap
+            return false
+        w := Gdip_GetImageWidth(bitmap), h := Gdip_GetImageHeight(bitmap)
+        if w < 1 || h < 1 || w > 1024 || h > 1024 {
+            Gdip_DisposeImage(bitmap)
+            return false
+        }
+        if this._avatarBitmap
+            Gdip_DisposeImage(this._avatarBitmap)
+        this._avatarBitmap := bitmap
+        this.Invalidate(false)
+        this.Draw()
+        Toastify.__wake()
+        return true
+    }
+
     Destroy() {
+        if this._avatarBitmap {
+            Gdip_DisposeImage(this._avatarBitmap)
+            this._avatarBitmap := 0
+        }
         if (!this.hwnd)
             return
         if (this.GCache) {

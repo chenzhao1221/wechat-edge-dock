@@ -10,7 +10,8 @@ foreach ($folder in @('vendor','tests')) { Copy-Item -LiteralPath (Join-Path $pr
 $program = Join-Path $testDir 'AutoHotkey64.exe'
 foreach ($case in @(
     @{Name='dock'; Args=@('/ErrorStdOut', 'winautohidev2.ahk', '--self-test')},
-    @{Name='animation'; Args=@('/ErrorStdOut', 'tests\Animation.ahk')}
+    @{Name='animation'; Args=@('/ErrorStdOut', 'tests\Animation.ahk')},
+    @{Name='emoji-avatar'; Args=@('/ErrorStdOut', 'tests\EmojiAvatar.ahk')}
 )) {
     $output = Join-Path $testDir ($case.Name + '.txt')
     $errorOutput = Join-Path $testDir ($case.Name + '-error.txt')
