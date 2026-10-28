@@ -1,0 +1,15 @@
+data/
+work/
+dist/
+target/
+**/target/
+*.exe
+!notify-tools/wechat-notify-module.exe
+*.dll
+*.bak
+*.previous
+*.tmp
+*.log
+*.ini
+*.zip
+*.pdb

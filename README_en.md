@@ -1,40 +1,13 @@
-# winautohidev2
+# WeChat Edge Dock
 
-[(中文介绍)](https://github.com/windwhim/winautohidev2)  [(English Introduction)](https://github.com/windwhim/winautohidev2/blob/main/README_en.md)
+A personal Windows WeChat adaptation of [windwhim/winautohidev2](https://github.com/windwhim/winautohidev2): edge docking, hover reveal, fullscreen edge-handle suppression, and optional local notification cards.
 
-## Introduction
+Download the Windows x64 ZIP from [Releases](https://github.com/chenzhao1221/wechat-edge-dock/releases), extract it and run `启动微信收纳.cmd`. First launch downloads official AutoHotkey v2.0.31 and verifies SHA256. Neither the runtime nor WeChat DLLs are bundled.
 
-![introduction](assest/introduction.gif)
+Defaults: left edge, 500ms retract delay, 7×172px handle. Green cards are centered at one-quarter of the usable screen height, slide in from the left, expire after five seconds, pause on hover, and support left-swipe dismissal.
 
-Use shortcuts to hide the current window to the edge of the screen.
+Docking uses Windows APIs. The optional notification bridge **modifies Weixin.dll**, requires a tested matching DLL fingerprint, and preserves a verified full backup. Install/restore requires exiting WeChat. The bridge requires Windows App Runtime 2 x64. It does not add anti-revoke functionality, read chat databases, or upload messages.
 
-Inspired by [Preme for Windows](http://www.premeforwindows.com/) and [winautohide](https://github.com/scavin/winautohide).
+v0.1.0 is a preview primarily tested with Windows 11 and WeChat 4.1.9.30. Mixed DPI, multiple monitors, games and composer focus need additional real-world validation. Unknown DLL fingerprints are not installed automatically.
 
-They use AutoHotKeyV1, this repo is written in AutoHotKeyV2, so it is named `winautohidev2`.
-
-Works well on Windows 11 26100.2161 and optimizes for use with multiple monitors and high DPI scaling using [DPI.ahk](https://github.com/Descolada/AHK-v2-libraries/blob/main/Lib/DPI.ahk).
-
-The following is partially quoted from [winautohide](https://github.com/scavin/winautohide).
-
-
->If you often need to use certain small windows (e.g. Notepad, command line, etc.) and want to simply swipe the mouse to bring up these small windows, this small script will be useful for you.
->
->After activating the window you want to hide, press `Ctrl + Left`and the window will be automatically hidden to the edge of the screen by pressing the arrow keys. This automatically hides the window and leaves a pixel window edge at the edge of the screen. When the mouse pointer touches the window edge, the automatically hidden window will reappear and gain focus for your use; when the mouse pointer moves out of the window, it will be hidden again, and when the window is *dragged out*, it can be unhidden.
->
->Just like you are using an auto-welded hidden window (such as an auto-hidden action sheet, a welded hidden QQ main window).
->
->Compatible with Windows 11.
-
-## Usage
-
-### One
-
-1. Please install [AutoHotKeyV2](http://www.autohotkey.com/).
-
-2. Download all `.ahk` files or clone this repo.
-3. Run `winautohidev2.ahk`.
-4. Use `Ctrl + Left` to hide the window screen to the left, the maximized window cannot be hidden.
-
-### Two
-
-1. Go to [Release](https://github.com/windwhim/winautohidev2/releases) and download the latest version.
+See the [Chinese guide](README.md), [development guide](docs/DEVELOPMENT.md) and [third-party notices](THIRD_PARTY_NOTICES.md). No blanket MIT license is asserted for this derivative.

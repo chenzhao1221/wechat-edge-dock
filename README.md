@@ -1,52 +1,62 @@
-# winautohidev2
+# 微信贴边收纳 · WeChat Edge Dock
 
-[(中文介绍)](https://github.com/windwhim/winautohidev2)  [(English Introduction)](https://github.com/windwhim/winautohidev2/blob/main/README_en.md)
+让 Windows 微信像老版 QQ 一样贴边收起、鼠标触边展开，并提供可选的左侧消息通知。
 
-## 介绍
+基于 [windwhim/winautohidev2](https://github.com/windwhim/winautohidev2) 的个人修改版。当前为 **v0.1.0 预览版**，主要在 Windows 11、微信 4.1.9.30 上验证。
 
-![introduction](assest/introduction.gif)
+## 下载与启动
 
-使用快捷键将当前窗口隐藏到屏幕边缘。
+1. 从 [Releases](https://github.com/chenzhao1221/wechat-edge-dock/releases) 下载 Windows x64 ZIP，解压到固定目录。
+2. 双击 `启动微信收纳.cmd`。首次启动从 AutoHotkey 官方 GitHub 下载固定版本 v2.0.31 并校验 SHA256，需要联网，无需系统安装。
+3. 从微信托盘打开主窗口，点击面板“接管微信并贴边”。默认左侧，鼠标离开 500 毫秒后收起。
+4. 悬停绿色感应条约 160 毫秒展开。感应条宽 7、长 172 物理像素。
 
-灵感来自于[Preme for Windows](http://www.premeforwindows.com/) 和 [winautohide](https://github.com/scavin/winautohide)。
+也可自行将官方 `AutoHotkey64.exe` v2.0.31 放在项目根目录。仓库和 ZIP 均不附带微信 DLL、聊天数据或 AutoHotkey 运行时。
 
-它们使用 [AutoHotKeyV1](http://www.autohotkey.com/)，此repo使用AutoHotKeyV2编写，故命名为`winautohidev2`。
+## 功能
 
-在Window 11 26100.2161上运行良好，并且使用[DPI.ahk](https://github.com/Descolada/AHK-v2-libraries/blob/main/Lib/DPI.ahk)优化了多显示器和高DPI缩放下使用的问题。
+- 左右贴边、显示器选择、图钉保持展开；拖离边缘可浮动，拖回边缘可重新吸附。
+- 展开时激活微信；辅助功能接口能识别唯一聊天输入框时自动聚焦，只有列表或识别不明确时保留原焦点。
+- 前台应用覆盖整块显示器时隐藏感应条、暂停触边展开，退出全屏自动恢复；普通最大化且留有任务栏不算全屏。
+- 可选通知位于屏幕可用高度 **1/4**，从左滑入，5 秒后滑回；悬停暂停、离开继续，左拖或左甩收起，短拖回弹。
+- 通知使用微信绿 `#07C160`，没有关闭按钮；点击只展开微信，不额外锁定、不定位会话。
+- 正常退出恢复接管前状态；异常退出后，下次启动核对窗口身份并尝试恢复。
 
-以下内容部分引用自[winautohide](https://github.com/scavin/winautohide)。
+| 操作 | 效果 |
+| --- | --- |
+| Ctrl+Alt+W | 恢复微信、贴回所选边缘并锁定，打开面板 |
+| Ctrl+Alt+P | 切换图钉 |
+| Ctrl+Alt+← / → | 接管并贴到左侧 / 右侧 |
+| 关闭面板 | 留在托盘继续运行 |
+| 托盘菜单“退出并恢复微信” | 恢复窗口并结束收纳 |
 
-> 如果你经常需要用到某些小窗口（例如记事本、命令行等）又想简单滑动鼠标就可以调出这些小窗口，这小脚本对你会有用。
->
-> 在激活想要隐藏的窗口后，按下`Ctrl+Left`，这窗口就会按所按的方向键自动隐藏到屏幕边缘。这自动隐藏窗口会保持最顶并在屏幕边缘留下一像素的窗边。当鼠标指针触及这窗边的时候，该自动隐藏窗口就会重新出现并取得焦点供你使用；当鼠标指针移出该窗口时它又会重新隐藏，当将窗口向外拖动可取消隐藏状态。
->
-> 就如你在使用自动贴边隐藏的窗口（如自动隐藏的任务栏、贴边隐藏的QQ主窗口）一样。
->
-> 兼容 Windows11。
+## 可选原生通知模块
 
-## 使用
+**窗口收纳通过 Windows 窗口接口工作；原生通知模块会修改 `Weixin.dll`。** 不需要通知时可以只用窗口收纳。
 
-### 方法一
+面板支持选择微信、检查状态、检测 DLL 代码兼容性、安装模块和恢复安装前版本。
 
-1. 请先安装 [AutoHotKeyV2](http://www.autohotkey.com/)。
+- 按完整 SHA256 指纹匹配，不按目录版本号判断。当前配置来自微信 4.1.9.30 官方原版及一个已有防撤回的基线；其他版本若 DLL 完全相同也可匹配。
+- 代码检测在临时副本上分析目标函数、引用和补丁范围。未知指纹即使结构匹配，也只报告“尚未实测”，不直接替换。
+- 检测可在微信运行时进行；安装、更新或恢复前需正常退出所有微信进程，面板可保持运行。写入时可能需要系统权限确认。
+- 安装前完整备份为 DLL 同目录的 `Weixin.dll.before-notify.bak`，不同内容的备份不覆盖；恢复核对备份与补丁是否配对。
+- 安装前文件中已有的受支持防撤回补丁会保留；本项目不提供新增防撤回功能。
+- 模块需要 **Windows App Runtime 2 x64**。缺少时按 [微软官方说明](https://learn.microsoft.com/windows/apps/windows-app-sdk/downloads) 安装对应运行时，它与 AutoHotkey 不同。
 
-2. 下载所有`.ahk`文件。
-3. 运行 `winautohidev2.ahk` 。
-4. 使用`Ctrl+Left`将窗口屏幕隐藏到左侧，最大化窗口不可隐藏。
-5. 使用`Ctrl+F4`取消所有窗口隐藏。
+通知内容仅通过本机窗口消息交给收纳程序显示，不读取聊天数据库、不上传内容；日志不记录会话名和消息正文。发布版移除开发用的 DLL 诊断文件写入。
 
-### 方法二
+## 数据与限制
 
-1. 前往 [Release](https://github.com/windwhim/winautohidev2/releases) 下载最新版。
+本地设置、恢复记录和日志位于 `data/`。微信被收起时不要删除目录或恢复记录，先使用“退出并恢复微信”。
 
-## Todo
-1. 增加上边和右边隐藏
-2. 多窗口同时显示后鼠标移动切换层级
-3. 隐藏后隐藏任务栏图标，拖拽后恢复
-4. 窗口隐藏后减少占用面积
+- 不自动随 Windows 启动，也不自动接管微信；多个主窗口时拒绝自动选择账号。
+- 单屏路径和隔离窗口测试已验证；混合 DPI、双屏、游戏全屏及不同布局仍需更多实机反馈。
+- 输入框聚焦依赖 UI Automation 元数据；识别失败时只激活窗口，不模拟点击或发送按键。
+- 全屏避让只控制感应条；通知卡片和手动快捷键仍可使用。
+- 微信升级后请重新检测，不要把旧 DLL 覆盖到新版本里。
 
-## Bug记录
-1. 当隐藏窗口和位于其下的窗口为同一应用时出现卡顿
-1. 资源管理器隐藏时鼠标移到右键菜单上会导致资源管理器重新隐藏
-1. 在多显示器之间窗口移动不够平滑（可能为windows问题）
-1. 部分应用窗口宽度获取不准确
+## 开发与来源
+
+[开发与测试](docs/DEVELOPMENT.md) · [来源与许可](THIRD_PARTY_NOTICES.md) · [变更记录](CHANGELOG.md) · [English](README_en.md)
+
+收纳底座来自 WinAutoHide v2，通知补丁基于 BetterWX 抽取适配，动画来自 AHKv2-Toastification。保留作者信息与上游历史，未将整个项目笼统标为 MIT，各部分许可见对应文件。

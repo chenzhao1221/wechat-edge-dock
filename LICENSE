@@ -1,0 +1,38 @@
+Licensing notice
+
+This personal derivative combines components with different licensing terms.
+It is not licensed as a whole under MIT or any other single license.
+See THIRD_PARTY_NOTICES.md for the component map.
+
+The retained WinAutoHide v2 code has no explicit upstream license declaration.
+Attribution and history are preserved; this repository does not claim to
+relicense it. The same applies to the separately attributed GDI+ helper where
+no explicit standalone license was found.
+
+The BetterWX extraction is under the Unlicense (notify-tools/LICENSE).
+Toastify is MIT-licensed (vendor/Toastify/LICENSE). Descolada's libraries are
+MIT-licensed (licenses/Descolada-MIT.txt). Rust dependency licenses are
+provided under licenses/rust/.
+
+To the extent independently authored rather than derived from those components,
+new integration, installer, bootstrap and test scripts use the MIT license below.
+
+Copyright (c) 2026 chenzhao1221
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
