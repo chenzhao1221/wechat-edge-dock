@@ -104,10 +104,6 @@ InternalEdge(window) {
 }
 
 PlaceEdge(window) {
-    if ForegroundFullscreen(window) {
-        Edge.Hide()
-        return
-    }
     Edge.Show('NA w7 h172')
     r := EdgeRect(window)
     MovePhysical(Edge.Hwnd, r.x, r.y, r.w, r.h)

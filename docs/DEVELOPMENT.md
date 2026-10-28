@@ -3,7 +3,7 @@
 ## 结构
 
 - `winautohidev2.ahk`：主入口、窗口状态与动画。
-- `DockSupport.ahk` / `DockInteraction.ahk`：面板、恢复、全屏和焦点。
+- `DockSupport.ahk` / `DockInteraction.ahk`：面板、恢复、边条几何和焦点。
 - `NotifySupport.ahk`：WM_COPYDATA、通知、手势和悬停。
 - `EmojiText.ahk` / `AvatarSupport.ahk`：普通 emoji 字体与组合边界；头像异步下载、缓存及回退。
 - `NotifyInstaller.ahk`：异步安装面板。

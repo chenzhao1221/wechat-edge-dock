@@ -2,31 +2,6 @@
 EdgeRect(window) => {x: window.mode = 'left' ? window.left : window.right - 7,
     y: window.showY + Max(0, (window.h - 172) // 2), w: 7, h: 172}
 
-CoversMonitor(r, l, t, right, bottom) => r.x <= l + 1 && r.y <= t + 1
-    && r.x + r.w >= right - 1 && r.y + r.h >= bottom - 1
-
-ForegroundFullscreen(window) {
-    hwnd := DllCall('GetForegroundWindow', 'ptr')
-    if !hwnd || hwnd = window.id || IsOwned(hwnd, window.id)
-        return false
-    try {
-        cls := WinGetClass('ahk_id ' hwnd)
-        if cls = 'Progman' || cls = 'WorkerW' || cls = 'Shell_TrayWnd'
-            || WinGetPID('ahk_id ' hwnd) = DllCall('GetCurrentProcessId', 'uint')
-            || WinGetMinMax('ahk_id ' hwnd) = -1
-            return false
-        monitor := DllCall('MonitorFromWindow', 'ptr', hwnd, 'uint', 2, 'ptr')
-        info := Buffer(40, 0)
-        NumPut('uint', 40, info)
-        if !DllCall('GetMonitorInfoW', 'ptr', monitor, 'ptr', info)
-            return false
-        return CoversMonitor(PhysicalRect(hwnd), NumGet(info, 4, 'int'),
-            NumGet(info, 8, 'int'), NumGet(info, 12, 'int'), NumGet(info, 16, 'int'))
-    } catch {
-        return false
-    }
-}
-
 ActivateWeChatInput(hwnd) {
     try {
         WinActivate('ahk_id ' hwnd)

@@ -94,11 +94,6 @@ WatchCursor() {
                 graceUntil := A_TickCount + 1500
                 return
             }
-            if ForegroundFullscreen(window) {
-                Edge.Hide()
-                hoverSince := 0
-                return
-            }
             if !DllCall('IsWindowVisible', 'ptr', Edge.Hwnd)
                 PlaceEdge(window)
             r := EdgeRect(window)

@@ -1,6 +1,6 @@
 # WeChat Edge Dock
 
-A personal Windows WeChat adaptation of [windwhim/winautohidev2](https://github.com/windwhim/winautohidev2): edge docking, hover reveal, fullscreen edge-handle suppression, and optional local notification cards.
+A personal Windows WeChat adaptation of [windwhim/winautohidev2](https://github.com/windwhim/winautohidev2): edge docking, hover reveal, a topmost edge handle, and optional local notification cards. The local unreleased revision removes automatic fullscreen suppression; the existing v0.2.0 download retains the previous behavior.
 
 Download the Windows x64 ZIP from [Releases](https://github.com/chenzhao1221/wechat-edge-dock/releases), extract it and run `启动微信收纳.cmd`. First launch downloads official AutoHotkey v2.0.31 and verifies SHA256. Neither the runtime nor WeChat DLLs are bundled.
 

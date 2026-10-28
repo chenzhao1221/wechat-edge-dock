@@ -4,10 +4,6 @@ RunTests() {
     if FileExist(journal)
         throw Error('请先退出正在收纳的实例后再运行测试，避免覆盖恢复记录。')
     results := []
-    Assert(CoversMonitor({x: -1920, y: 0, w: 1920, h: 1080}, -1920, 0, 0, 1080),
-        'fullscreen negative monitor coordinates', results)
-    Assert(!CoversMonitor({x: 0, y: 0, w: 1920, h: 1040}, 0, 0, 1920, 1080),
-        'maximized work area is not fullscreen', results)
     Assert(ComposerBounds({x: 300, y: 400, w: 200, h: 100}, {x: 0, y: 0, w: 600, h: 600}),
         'chat composer lower pane accepted', results)
     Assert(!ComposerBounds({x: 20, y: 20, w: 180, h: 30}, {x: 0, y: 0, w: 600, h: 600}),
@@ -60,6 +56,12 @@ RunTests() {
         hideWindow(current)
         Assert(current.hidden && !DllCall('IsWindowVisible', 'ptr', fake.Hwnd), 'hide completes', results)
         Assert(DllCall('IsWindowVisible', 'ptr', Edge.Hwnd), 'restore handle visible', results)
+        cover := Gui('+Resize', 'Maximized cover fixture')
+        cover.Show('Maximize')
+        PlaceEdge(current)
+        Assert(DllCall('IsWindowVisible', 'ptr', Edge.Hwnd), 'edge remains visible with maximized app', results)
+        Assert(WinGetExStyle('ahk_id ' Edge.Hwnd) & 0x8, 'edge retains topmost style', results)
+        cover.Destroy()
         showWindow(current)
         Assert(!current.hidden && DllCall('IsWindowVisible', 'ptr', fake.Hwnd), 'show completes', results)
         Assert(!DllCall('IsWindowVisible', 'ptr', Edge.Hwnd), 'handle dismissed', results)
