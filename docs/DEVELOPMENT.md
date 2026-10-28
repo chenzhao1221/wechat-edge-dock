@@ -39,7 +39,7 @@ Windows x64、支持 Rust 2024 edition 的 Rust 工具链：
 ## 打包
 
 ```powershell
-.\scripts\Package.ps1 -Version 0.1.0
+.\scripts\Package.ps1 -Version 0.2.0
 ```
 
 产物位于 dist/，包含工具源码和许可，不包含 AutoHotkey 运行时、微信 DLL 或 data/。GitHub 自动下载的源码包与发行 ZIP 不同；发行 ZIP 已附带补丁工具，源码开发者可自行重建。

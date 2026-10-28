@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — 2026-10-28
+## v0.2.0 — 2026-10-28 · Preview
 
 - 普通 Unicode emoji 使用单独字体绘制，保留中文原字体；安全截断常见 emoji 组合。
 - 通知协议 V2 携带联系人头像地址，同时保留对 V1 文字通知的兼容。
