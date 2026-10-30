@@ -4,6 +4,7 @@
 
 - `winautohidev2.ahk`：主入口、窗口状态与动画。
 - `DockSupport.ahk` / `DockInteraction.ahk`：面板、恢复、边条几何和焦点。
+- `DockStartup.ahk`：当前用户启动快捷方式、静默托盘启动、接管完成提示。
 - `NotifySupport.ahk`：WM_COPYDATA、通知、手势和悬停。
 - `EmojiText.ahk` / `AvatarSupport.ahk`：普通 emoji 字体与组合边界；头像异步下载、缓存及回退。
 - `NotifyInstaller.ahk`：异步安装面板。
@@ -32,14 +33,14 @@ Windows x64、支持 Rust 2024 edition 的 Rust 工具链：
 .\scripts\Run-Tests.ps1
 ```
 
-运行时缺失则先从官方获取；每次测试建立独立目录，不复制真实 data/。32 项窗口、IPC、焦点元数据和面板检查，加通知位置/悬停/动画测试及 emoji/头像夹具。头像网络结果采用合成响应验证字节写入和缓存；不能据此宣称真实联系人头像已验收。只操作合成窗口。
+运行时缺失则先从官方获取；每次测试建立独立目录，不复制真实 data/。窗口、IPC、焦点元数据、全屏隐藏外观但触边有效、面板和启动快捷方式检查，加通知位置/悬停/动画测试及 emoji/头像夹具。私有测试桌面可能没有前台窗口，全屏夹具向检测函数传入真实合成窗口句柄；自启夹具仅写测试目录，不修改用户启动文件夹。头像网络结果采用合成响应验证字节写入和缓存；不能据此宣称真实联系人头像已验收。只操作合成窗口。
 
 可另用 `tests/Installer.ps1 -FixtureRoot <本地夹具目录>` 测试原版、受支持防撤回基线及旧通知版的安装/恢复。夹具文件不入库、不上传。过程使用局部进程查询 mock，目标始终是临时副本；不能直接针对正在使用的微信安装目录测试。
 
 ## 打包
 
 ```powershell
-.\scripts\Package.ps1 -Version 0.2.0
+.\scripts\Package.ps1 -Version 0.3.0
 ```
 
 产物位于 dist/，包含工具源码和许可，不包含 AutoHotkey 运行时、微信 DLL 或 data/。GitHub 自动下载的源码包与发行 ZIP 不同；发行 ZIP 已附带补丁工具，源码开发者可自行重建。

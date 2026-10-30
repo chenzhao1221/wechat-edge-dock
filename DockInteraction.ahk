@@ -2,6 +2,35 @@
 EdgeRect(window) => {x: window.mode = 'left' ? window.left : window.right - 7,
     y: window.showY + Max(0, (window.h - 172) // 2), w: 7, h: 172}
 
+; Fullscreen affects paint only. Hover is polled by screen coordinates even when hidden.
+ForegroundFullscreen(window, hwnd := 0) {
+    hwnd := hwnd ? hwnd : WinExist('A')
+    if !hwnd || hwnd = window.id || hwnd = Edge.Hwnd
+        return false
+    try {
+        cls := WinGetClass('ahk_id ' hwnd)
+        if cls = 'Progman' || cls = 'WorkerW' || cls = 'Shell_TrayWnd'
+            || WinGetMinMax('ahk_id ' hwnd) = 1
+            return false
+        MonitorGet(window.monitor, &l, &t, &r, &b)
+        bounds := PhysicalRect(hwnd)
+        return bounds.x <= l && bounds.y <= t
+            && bounds.x + bounds.w >= r && bounds.y + bounds.h >= b
+    }
+    return false
+}
+
+CheckEdgeHover(window, mx, my) {
+    global hoverSince
+    if Inside(mx, my, EdgeRect(window)) {
+        if !hoverSince
+            hoverSince := A_TickCount
+        if A_TickCount - hoverSince >= 160
+            showWindow(window, true)
+    } else
+        hoverSince := 0
+}
+
 ActivateWeChatInput(hwnd) {
     try {
         WinActivate('ahk_id ' hwnd)

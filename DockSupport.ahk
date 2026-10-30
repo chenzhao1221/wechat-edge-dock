@@ -103,7 +103,13 @@ InternalEdge(window) {
     return false
 }
 
-PlaceEdge(window) {
+PlaceEdge(window, foregroundHwnd := 0) {
+    if ForegroundFullscreen(window, foregroundHwnd) {
+        Edge.Hide()
+        return
+    }
+    if DllCall('IsWindowVisible', 'ptr', Edge.Hwnd)
+        return
     Edge.Show('NA w7 h172')
     r := EdgeRect(window)
     MovePhysical(Edge.Hwnd, r.x, r.y, r.w, r.h)
@@ -253,6 +259,9 @@ BuildPanel() {
     DelayControl.OnEvent('Change', ApplySettings)
     PinControl := Panel.AddCheckbox('xm y+16', '图钉锁定：保持微信展开')
     PinControl.OnEvent('Click', PinChanged)
+    startupControl := Panel.AddCheckbox('xm y+12', '开机自启（登录 Windows 后在托盘运行）')
+    startupControl.Value := StartupEnabled()
+    startupControl.OnEvent('Click', StartupChanged)
     Panel.AddButton('xm y+18 w210 Default', '接管微信并贴边').OnEvent('Click', AttachWeChat)
     Panel.AddButton('x+10 w220', '停止收纳 / 恢复原位置').OnEvent('Click', Reset)
     StatusControl := Panel.AddText('xm y+15 w450 h50', '先打开微信主窗口，然后点击接管。')
@@ -273,7 +282,8 @@ BuildPanel() {
     A_TrayMenu.Add('退出并恢复微信', (*) => ExitApp())
     A_TrayMenu.Default := '打开控制面板'
     A_IconTip := '微信窗口收纳 · Ctrl+Alt+W 恢复'
-    Panel.Show()
+    if !(A_Args.Length && A_Args[1] = '--startup')
+        Panel.Show()
 }
 
 ApplySettings(*) {

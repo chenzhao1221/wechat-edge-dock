@@ -2,6 +2,7 @@
 
 - AHK v2 app. winautohidev2.ahk is the entry point; the panel title is also the native IPC address. Change both sides together.
 - DockSupport.ahk: panel/identity/recovery. DockInteraction.ahk: edge geometry/focus. NotifySupport.ahk: cards/IPC. NotifyInstaller.ahk: async installer UI.
+- DockStartup.ahk: per-user login shortcut and tray completion. Fullscreen may hide edge paint only; coordinate hover must remain active. Test startup with a fixture shortcut, never the real Startup folder.
 - notify-tools/Manage-Notification.ps1 owns hashes, backups and atomic replacement. Keep binary, source and expected hashes synchronized.
 - Never ship Weixin.dll, backups, personal paths, data/, logs or credentials. Never test against installed WeChat DLLs.
 - Never kill the user's dock or WeChat. scripts/Run-Tests.ps1 uses isolated windows/copies.

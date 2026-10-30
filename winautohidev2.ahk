@@ -4,6 +4,7 @@
 #Include DPI.ahk
 #Include DockSupport.ahk
 #Include DockInteraction.ahk
+#Include DockStartup.ahk
 #Include NotifySupport.ahk
 #Include NotifyInstaller.ahk
 ; Local WeChat adaptation of windwhim/winautohidev2, b449935.
@@ -94,16 +95,8 @@ WatchCursor() {
                 graceUntil := A_TickCount + 1500
                 return
             }
-            if !DllCall('IsWindowVisible', 'ptr', Edge.Hwnd)
-                PlaceEdge(window)
-            r := EdgeRect(window)
-            if Inside(mx, my, r) {
-                if !hoverSince
-                    hoverSince := A_TickCount
-                if A_TickCount - hoverSince >= 160
-                    showWindow(window, true)
-            } else
-                hoverSince := 0
+            PlaceEdge(window)
+            CheckEdgeHover(window, mx, my)
             return
         }
         if pinned || A_TickCount < graceUntil || GetKeyState('LButton', 'P') || GetKeyState('RButton', 'P') {
@@ -179,6 +172,7 @@ AttachWeChat(*) {
         outsideSince := 0
         graceUntil := A_TickCount + 1500
         SetStatus('已接管微信；鼠标离开后收起，悬停绿色边条展开。')
+        AttachedToTray()
     } catch as e {
         PauseOnError(e)
     }

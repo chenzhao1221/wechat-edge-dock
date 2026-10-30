@@ -1,6 +1,6 @@
 ; Integration tests use a temporary test window, never the user's WeChat.
 RunTests() {
-    global current, Edge, selectedSide, selectedMonitor, pinned
+    global current, Edge, selectedSide, selectedMonitor, pinned, hoverSince
     if FileExist(journal)
         throw Error('请先退出正在收纳的实例后再运行测试，避免覆盖恢复记录。')
     results := []
@@ -58,10 +58,27 @@ RunTests() {
         Assert(DllCall('IsWindowVisible', 'ptr', Edge.Hwnd), 'restore handle visible', results)
         cover := Gui('+Resize', 'Maximized cover fixture')
         cover.Show('Maximize')
-        PlaceEdge(current)
+        PlaceEdge(current, cover.Hwnd)
         Assert(DllCall('IsWindowVisible', 'ptr', Edge.Hwnd), 'edge remains visible with maximized app', results)
         Assert(WinGetExStyle('ahk_id ' Edge.Hwnd) & 0x8, 'edge retains topmost style', results)
+        WinRestore('ahk_id ' cover.Hwnd)
+        cover.Opt('-Caption -Border')
+        MonitorGet(current.monitor, &ml, &mt, &mr, &mb)
+        MovePhysical(cover.Hwnd, ml, mt, mr - ml, mb - mt)
+        WinActivate('ahk_id ' cover.Hwnd)
+        WinWaitActive('ahk_id ' cover.Hwnd,, 2)
+        ; Private test desktops may have no foreground window; supply the fixture HWND.
+        Assert(ForegroundFullscreen(current, cover.Hwnd), 'borderless fullscreen detected', results)
+        PlaceEdge(current, cover.Hwnd)
+        Assert(!DllCall('IsWindowVisible', 'ptr', Edge.Hwnd), 'fullscreen hides edge paint', results)
+        edgeBounds := EdgeRect(current)
+        hoverSince := A_TickCount - 200
+        CheckEdgeHover(current, edgeBounds.x + 1, edgeBounds.y + 1)
+        Assert(!current.hidden, 'hidden edge still expands on hover', results)
+        hideWindow(current)
         cover.Destroy()
+        PlaceEdge(current)
+        Assert(DllCall('IsWindowVisible', 'ptr', Edge.Hwnd), 'edge returns after fullscreen ends', results)
         showWindow(current)
         Assert(!current.hidden && DllCall('IsWindowVisible', 'ptr', fake.Hwnd), 'show completes', results)
         Assert(!DllCall('IsWindowVisible', 'ptr', Edge.Hwnd), 'handle dismissed', results)
@@ -92,6 +109,18 @@ RunTests() {
         BuildPanel()
         Assert(SideControl.Value = 1 && DelayControl.Value = '500', 'panel defaults left and 500ms', results)
         Assert(NotifyModuleButtons.Length = 5, 'notification manager panel controls load', results)
+        AttachedToTray(false)
+        Assert(!DllCall('IsWindowVisible', 'ptr', Panel.Hwnd), 'attach completion hides panel to tray', results)
+        startupFixture := A_ScriptDir '\data\startup-test.lnk'
+        try {
+            SetStartup(true, startupFixture)
+            Assert(StartupEnabled(startupFixture), 'startup shortcut targets exact runtime and script', results)
+            SetStartup(false, startupFixture)
+            Assert(!FileExist(startupFixture), 'startup option removes shortcut', results)
+        } finally {
+            if FileExist(startupFixture)
+                FileDelete(startupFixture)
+        }
         Panel.Destroy()
         FileAppend('PASS ' results.Length ' checks`n' JoinLines(results), '*', 'UTF-8')
     } catch as e {
