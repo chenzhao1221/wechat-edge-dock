@@ -1,5 +1,7 @@
 # 微信贴边收纳 · WeChat Edge Dock
 
+[English](README_en.md) · **简体中文**
+
 让 Windows 微信像老版 QQ 一样贴边收起、鼠标触边展开，并提供可选的左侧消息通知。
 
 基于 [windwhim/winautohidev2](https://github.com/windwhim/winautohidev2) 的个人修改版。当前为 **v0.3.0 预览版**，主要在 Windows 11、微信 4.1.9.30 上验证。
