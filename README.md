@@ -2,7 +2,11 @@
 
 [English](README_en.md) · **简体中文**
 
-让 Windows 微信像老版 QQ 一样贴边收起、鼠标触边展开，并提供可选的左侧消息通知。
+让 Windows 微信像老版 QQ 一样贴边隐藏，鼠标碰到屏幕边缘就展开，移开后自动收起。
+
+[下载 Windows x64 预览版](https://github.com/chenzhao1221/wechat-edge-dock/releases/tag/v0.3.0) · [启动步骤](#下载与启动)
+
+基础收纳通过 Windows 窗口接口工作。需要左侧消息通知的话，再单独启用[可选通知模块](#可选原生通知模块)。
 
 基于 [windwhim/winautohidev2](https://github.com/windwhim/winautohidev2) 的个人修改版。当前为 **v0.3.0 预览版**，主要在 Windows 11、微信 4.1.9.30 上验证。
 
